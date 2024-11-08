@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.animes_jikan.Modelos.Anime;
+import com.example.animes_jikan.Modelos.OnAnimeClickListener;
 import com.example.animes_jikan.R;
 
 import java.util.ArrayList;
@@ -21,9 +22,11 @@ import java.util.List;
 public class AnimeAdapter extends RecyclerView.Adapter<AnimeAdapter.AnimeViewHolder> {
     private List<Anime> animeList;
     private Context context;
+    private OnAnimeClickListener listener;
 
-    public AnimeAdapter(Context context) {
+    public AnimeAdapter(Context context, OnAnimeClickListener listener) {
         this.context = context;
+        this.listener = listener;
         this.animeList = new ArrayList<>();
     }
 
@@ -42,24 +45,39 @@ public class AnimeAdapter extends RecyclerView.Adapter<AnimeAdapter.AnimeViewHol
     public void onBindViewHolder(AnimeViewHolder holder, int position) {
         Anime anime = animeList.get(position);
 
-        // Verificar si los datos no son null antes de asignarlos
+        // Configurar los datos del anime
         holder.title.setText(anime.getTitle() != null ? anime.getTitle() : "Sin título");
         holder.startDate.setText("Emisión: " + (anime.getAired().getFrom()));
         holder.endDate.setText("Finalización: " + (anime.getAired().getTo()));
         holder.episodes.setText("Episodios: " + (anime.getEpisodes()));
 
-        // Usar Glide para cargar la imagen
-        if (anime.getImages().getJpg().getImageUrl() != null && !anime.getImages().getJpg().getImageUrl().isEmpty()) {
+        // Cargar la imagen
+        if (anime.getImages() != null &&
+                anime.getImages().getJpg() != null &&
+                anime.getImages().getJpg().getImageUrl() != null) {
+
             Glide.with(context)
                     .load(anime.getImages().getJpg().getImageUrl())
-                    .placeholder(R.drawable.ic_launcher_background) // Asegúrate de tener una imagen placeholder
-                    .error(R.drawable.ic_launcher_background) // Asegúrate de tener una imagen de error
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .error(R.drawable.ic_launcher_background)
                     .into(holder.imageView);
-
-            Log.d(TAG, "URL IMAGEN: " + anime.getImages().getJpg().getImageUrl());
         } else {
-            holder.imageView.setImageResource(R.drawable.ic_launcher_background); // Imagen por defecto
+            holder.imageView.setImageResource(R.drawable.ic_launcher_background);
         }
+
+        // Configurar el click listener en la vista completa
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onAnimeClick(anime.getMalId());
+            }
+        });
+
+        // Opcionalmente, también puedes añadir el click listener solo en la imagen
+        holder.imageView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onAnimeClick(anime.getMalId());
+            }
+        });
     }
 
     @Override
